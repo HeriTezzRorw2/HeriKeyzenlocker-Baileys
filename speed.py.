@@ -1,0 +1,94 @@
+import math
+import time
+
+
+def clear():
+    print("\033[2J\033[H", end="")
+
+def draw(speed):
+    r = 16
+    scale_y = 0.5
+    cx, cy = r, r
+
+    numbers = list(range(0, 181, 20))
+
+    for y in range(r*2):
+        for x in range(r*2):
+            dx = x - cx
+            dy = (y - cy) / scale_y
+            dist = math.sqrt(dx*dx + dy*dy)
+
+            printed = False
+
+            # 🔢 ANGKA
+            for n in numbers:
+                angle = (n / 160) * math.pi - math.pi/2
+                nx = int(cx + (r-4) * math.cos(angle))
+                ny = int(cy + (r-4) * math.sin(angle) * scale_y)
+
+                text = str(n)
+                for i, ch in enumerate(text):
+                    if x == nx + i and y == ny:
+                        print(f"\033[96m{ch}\033[0m", end="")
+                        printed = True
+                        break
+                if printed:
+                    break
+
+            if printed:
+                continue
+
+            # 🔹 TICK MARK (garis kecil)
+            for t in range(0, 161, 10):
+                angle = (t / 160) * math.pi - math.pi/2
+                tx = int(cx + (r-1) * math.cos(angle))
+                ty = int(cy + (r-1) * math.sin(angle) * scale_y)
+
+                if x == tx and y == ty:
+                    print("\033[94m.\033[0m", end="")
+                    printed = True
+                    break
+
+            if printed:
+                continue
+
+            # 🔵 LINGKARAN
+            if r-0.5 < dist < r+0.5:
+                print("\033[94m#\033[0m", end="")
+
+            else:
+                # 🔴 JARUM
+                angle = math.atan2(dy, dx)
+                needle = (speed / 160) * math.pi - math.pi/2
+
+                if abs(angle - needle) < 0.03 and dist < r:
+                    # warna berubah
+                    if speed < 60:
+                        color = "\033[92m"
+                    elif speed < 120:
+                        color = "\033[93m"
+                    else:
+                        color = "\033[91m"
+
+                    print(f"{color}█\033[0m", end="")
+                else:
+                    print(" ", end="")
+        print()
+
+    # 🔥 DISPLAY BAWAH
+    if speed < 60:
+        col = "\033[92m"
+    elif speed < 120:
+        col = "\033[93m"
+    else:
+        col = "\033[91m"
+
+    print(f"\n{col}Speed: {speed} km/h\033[0m")
+
+speed = 0
+
+while True:
+    clear()
+    draw(speed)
+    speed = (speed + 1) % 160
+    time.sleep(0.03)
